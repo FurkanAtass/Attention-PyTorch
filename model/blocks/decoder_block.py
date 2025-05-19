@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from multihead_attention import MultiHeadAttention
+from layers.multihead_attention import MultiHeadAttention
 
 class DecoderBlock(nn.Module):
     def __init__(self, d_model, num_heads, dff, dropout=0.1):
