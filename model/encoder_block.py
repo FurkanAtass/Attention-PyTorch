@@ -9,7 +9,7 @@ class EncoderBlock(nn.Module):
         self.d_model = d_model
         self.num_heads = num_heads
         self.dff = dff
-
+        self.dropout = nn.Dropout(dropout)
         self.attention = MultiHeadAttention(d_model, num_heads)
 
         self.norm1 = nn.LayerNorm(d_model)
@@ -24,6 +24,7 @@ class EncoderBlock(nn.Module):
 
     def forward(self, x):
         attention = self.attention(x, x, x)
+        attention = self.dropout(attention)
         add_norm1 = self.norm1(x + attention)
 
         ffn = self.ffn(add_norm1)
