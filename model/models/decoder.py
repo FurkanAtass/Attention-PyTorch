@@ -4,7 +4,7 @@ from blocks.decoder_block import DecoderBlock
 from embedding.input_embedding import InputEmbedding
 from embedding.positional_encoding import PositionalEncoding
 
-class DecoderBlock(nn.Module):
+class Decoder(nn.Module):
     def __init__(self, vocab_size, d_model, num_heads, dff, num_layers, max_len, dropout=0.1):
         super(DecoderBlock, self).__init__()
 

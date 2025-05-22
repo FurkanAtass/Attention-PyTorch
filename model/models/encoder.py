@@ -15,14 +15,14 @@ class Encoder(nn.Module):
             EncoderBlock(d_model, num_heads, dff, dropout) for _ in range(num_layers)
         ])
 
-    def forward(self, x):
+    def forward(self, x, padding_mask=None):
         # x: (batch_size, T)
         x = self.input_embedding(x)
         # x: (batch_size, T, d_model)
         x = self.positional_encoding(x)
         # x: (batch_size, T, d_model)
         for block in self.encoder_blocks:
-            x = block(x)
+            x = block(x, padding_mask)
             # x: (batch_size, T, d_model)
         return x
 

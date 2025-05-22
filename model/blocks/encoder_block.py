@@ -22,8 +22,8 @@ class EncoderBlock(nn.Module):
             nn.Linear(dff, d_model)
         )
 
-    def forward(self, x):
-        attention = self.attention(x, x, x)
+    def forward(self, x, padding_mask=None):
+        attention = self.attention(x, x, x, padding_mask)
         attention = self.dropout(attention)
         add_norm1 = self.norm1(x + attention)
 
