@@ -1,8 +1,8 @@
 import torch
 from torch import nn
-from embedding.input_embedding import InputEmbedding
-from embedding.positional_encoding import PositionalEncoding
-from blocks.encoder_block import EncoderBlock
+from model.embedding.input_embedding import InputEmbedding
+from model.embedding.positional_encoding import PositionalEncoding
+from model.blocks.encoder_block import EncoderBlock
 
 class Encoder(nn.Module):
     def __init__(self, vocab_size, d_model, num_heads, dff, num_layers, max_len, dropout=0.1):

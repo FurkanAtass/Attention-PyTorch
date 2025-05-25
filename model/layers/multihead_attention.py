@@ -1,8 +1,8 @@
 import torch
 from torch import nn
-from self_attention import SelfAttention
+from model.layers.self_attention import SelfAttention
 class MultiHeadAttention(nn.Module):
-    def __init__(self, num_heads, d_model):
+    def __init__(self, d_model, num_heads):
         super(MultiHeadAttention, self).__init__()
 
         self.num_heads = num_heads

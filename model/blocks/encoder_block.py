@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from layers.multihead_attention import MultiHeadAttention
+from model.layers.multihead_attention import MultiHeadAttention
 
 class EncoderBlock(nn.Module):
     def __init__(self, d_model, num_heads, dff, dropout=0.1):

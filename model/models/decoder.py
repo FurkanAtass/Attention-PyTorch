@@ -1,12 +1,12 @@
 import torch
 from torch import nn
-from blocks.decoder_block import DecoderBlock
-from embedding.input_embedding import InputEmbedding
-from embedding.positional_encoding import PositionalEncoding
+from model.blocks.decoder_block import DecoderBlock
+from model.embedding.input_embedding import InputEmbedding
+from model.embedding.positional_encoding import PositionalEncoding
 
 class Decoder(nn.Module):
     def __init__(self, vocab_size, d_model, num_heads, dff, num_layers, max_len, dropout=0.1):
-        super(DecoderBlock, self).__init__()
+        super(Decoder, self).__init__()
 
         self.input_embedding = InputEmbedding(vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, max_len, dropout)
