@@ -28,7 +28,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         # x: (batch_size, T, d)
         # Use the encoding for the first T positions
-        x = x + self.encoding[:, :x.size(1), :].requires_grad(False) # shape: (batch_size, T, d)
+        x = x + self.encoding[:, :x.size(1), :].requires_grad_(False) # shape: (batch_size, T, d)
         x = self.dropout(x)
 
         return x
