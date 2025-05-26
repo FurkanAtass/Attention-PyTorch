@@ -53,10 +53,10 @@ class Transformer(nn.Module):
         # dec_input: (batch_size, tgt_len)
 
         enc_padding_mask = self.enc_mask(enc_input)
-        dec_padding_mask, look_ahead_mask = self.dec_mask(dec_input)
+        dec_padding_mask = self.dec_mask(dec_input)
 
         enc_output = self.encoder(enc_input, enc_padding_mask)
-        dec_output = self.decoder(dec_input, enc_output, look_ahead_mask, dec_padding_mask)
+        dec_output = self.decoder(dec_input, enc_output, dec_padding_mask, enc_padding_mask)
 
         final_output = self.final_layer(dec_output)
         final_output = self.dropout(final_output)
@@ -68,13 +68,12 @@ class Transformer(nn.Module):
         # (N, 1, 1, src_len)
         return enc_padding_mask
     
-    def dec_mask(self, dec_input):
-        # dec_input: (batch_size, T)
-        dec_padding_mask = (dec_input != self.decoder_padding_idx).unsqueeze(1).unsqueeze(2)
-        look_ahead_mask = torch.triu(torch.ones((dec_input.size(1), dec_input.size(1))), diagonal=1).bool()
-        look_ahead_mask = look_ahead_mask.unsqueeze(0).unsqueeze(1)
-        return dec_padding_mask, look_ahead_mask
-
+    def dec_mask(self, trg):
+        trg_pad_mask = (trg != self.decoder_padding_idx).unsqueeze(1).unsqueeze(3)
+        trg_len = trg.shape[1]
+        trg_sub_mask = torch.tril(torch.ones(trg_len, trg_len)).type(torch.ByteTensor)
+        trg_mask = trg_pad_mask & trg_sub_mask
+        return trg_mask
     
 
 
