@@ -52,7 +52,9 @@ class Transformer(nn.Module):
         # enc_input: (batch_size, src_len)
         # dec_input: (batch_size, tgt_len)
 
+        # Padding mask
         enc_padding_mask = self.enc_mask(enc_input)
+        # Look-ahead mask for decoder
         dec_padding_mask = self.dec_mask(dec_input)
 
         enc_output = self.encoder(enc_input, enc_padding_mask)

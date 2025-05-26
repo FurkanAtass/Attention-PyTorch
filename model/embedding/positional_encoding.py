@@ -24,10 +24,11 @@ class PositionalEncoding(nn.Module):
 
         self.encoding = self.encoding.unsqueeze(0) # shape: (1, max_len, d)
 
+        self.register_buffer('positional_encoding', self.encoding)
     def forward(self, x):
         # x: (batch_size, T, d)
         # Use the encoding for the first T positions
-        x = x + self.encoding[:, :x.size(1), :] # shape: (batch_size, T, d)
+        x = x + self.encoding[:, :x.size(1), :].requires_grad(False) # shape: (batch_size, T, d)
         x = self.dropout(x)
 
         return x

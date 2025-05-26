@@ -10,7 +10,6 @@ trg_pad_idx = 0
 src_vocab_size = 10
 trg_vocab_size = 10
 
-# TODO: change the naming of the masks as target and source masks respectively
 model = Transformer(
     encoder_padding_idx=src_pad_idx,
     decoder_padding_idx=trg_pad_idx,
