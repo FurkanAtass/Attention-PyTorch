@@ -41,13 +41,23 @@ def get_dataset(config):
 
     raw_train_dataset, raw_valid_dataset = random_split(raw_dataset, [train_dataset_size, valid_dataset_size])
     
+    source_max_len = 0
+    target_max_len = 0
+
+    for item in raw_dataset:
+        source_len = source_tokenizer.encode(item["translation"][config["source_language"]])
+        target_len = target_tokenizer.encode(item["translation"][config["target_language"]])
+
+        source_max_len = max(source_max_len, source_len)
+        target_max_len = max(target_max_len, target_len)
+
     train_dataset = TranslateDataset(
         raw_train_dataset,
         source_tokenizer,
         target_tokenizer,
         config["source_language"],
         config["target_language"],
-        config["max_sequence_len"]
+        source_max_len
     )
 
     valid_dataset = TranslateDataset(
@@ -56,7 +66,10 @@ def get_dataset(config):
         target_tokenizer,
         config["source_language"],
         config["target_language"],
-        config["max_sequence_len"]
+        target_max_len
     )
-    
-    return 
+
+    train_dataloader = DataLoader(train_dataset, config["batch_size"], shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, config["batch_size"])
+
+    return train_dataloader, valid_dataloader, source_tokenizer, target_tokenizer

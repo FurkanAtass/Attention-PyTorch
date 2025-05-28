@@ -8,5 +8,5 @@
         "source": "tokenizers/source_tokenizer",
         "target": "tokenizers/target_tokenizer"
     },
-    "max_sequence_len": 1000
+    "batch_size": 32
 }
