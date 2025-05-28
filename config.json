@@ -1,0 +1,12 @@
+{
+    "dataset_name": "Helsinki-NLP/opus_books",
+    "dataset_config": "de-en",
+    "source_language": "en",
+    "target_language": "de",
+    "train_split": 90,
+    "tokenizer_path": {
+        "source": "tokenizers/source_tokenizer",
+        "target": "tokenizers/target_tokenizer"
+    },
+    "max_sequence_len": 1000
+}
