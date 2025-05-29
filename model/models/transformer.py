@@ -16,7 +16,8 @@ class Transformer(nn.Module):
             dff=2048, 
             num_layers=6, 
             max_len=10000, 
-            dropout=0.1
+            dropout=0.1,
+            device="cpu"
         ):
         super(Transformer, self).__init__()
 
@@ -25,6 +26,8 @@ class Transformer(nn.Module):
         self.encoder_vocab_size = encoder_vocab_size
         self.decoder_vocab_size = decoder_vocab_size
 
+        self.device = device
+
         self.encoder = Encoder(
             vocab_size=encoder_vocab_size,
             d_model=d_model,
@@ -32,7 +35,8 @@ class Transformer(nn.Module):
             dff=dff,
             num_layers=num_layers,
             max_len=max_len,
-            dropout=dropout
+            dropout=dropout,
+            device=device
         )
 
         self.decoder = Decoder(
@@ -42,7 +46,8 @@ class Transformer(nn.Module):
             dff=dff,
             num_layers=num_layers,
             max_len=max_len,
-            dropout=dropout
+            dropout=dropout,
+            device=device
         )
 
         self.final_layer = nn.Linear(d_model, decoder_vocab_size)
@@ -73,7 +78,7 @@ class Transformer(nn.Module):
     def dec_mask(self, trg):
         trg_pad_mask = (trg != self.decoder_padding_idx).unsqueeze(1).unsqueeze(3)
         trg_len = trg.shape[1]
-        trg_sub_mask = torch.tril(torch.ones(trg_len, trg_len)).type(torch.ByteTensor)
+        trg_sub_mask = torch.tril(torch.ones(trg_len, trg_len)).type(torch.ByteTensor).to(self.device)
         trg_mask = trg_pad_mask & trg_sub_mask
         return trg_mask
     
