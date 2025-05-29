@@ -15,13 +15,13 @@ def get_all_sentences(dataset, language):
     for data in dataset:
         yield data['translation'][language]
 
-def get_or_build_tokenizer(config, dataset, language):
-    tokenizer_path = Path(config["tokenizer_path"])
+def get_or_build_tokenizer(config, dataset, language, tokenizer_type):
+    tokenizer_path = Path(config["tokenizer_path"][tokenizer_type])
     if not tokenizer_path.exists():
         tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
         tokenizer.pre_tokenizer = Whitespace()
 
-        trainer = WordLevelTrainer(special_tokens = ["UNK", "PAD", "SOS", "EOS"], min_frequency=2)
+        trainer = WordLevelTrainer(special_tokens = ["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         tokenizer.train_from_iterator(get_all_sentences(dataset, language), trainer=trainer)
 
         tokenizer.save(str(tokenizer_path))
@@ -33,23 +33,23 @@ def get_or_build_tokenizer(config, dataset, language):
 
 def get_dataset(config):
     raw_dataset = load_dataset(config["dataset_name"], config["dataset_config"], split="train")
-    source_tokenizer = get_or_build_tokenizer(config, raw_dataset, config["source_language"])
-    target_tokenizer = get_or_build_tokenizer(config, raw_dataset, config=["target_language"])
+    source_tokenizer = get_or_build_tokenizer(config, raw_dataset, config["source_language"], "source")
+    target_tokenizer = get_or_build_tokenizer(config, raw_dataset, config["target_language"], "target")
 
     train_dataset_size = int(len(raw_dataset) * config["train_split"])
     valid_dataset_size = len(raw_dataset) - train_dataset_size
 
     raw_train_dataset, raw_valid_dataset = random_split(raw_dataset, [train_dataset_size, valid_dataset_size])
     
-    source_max_len = 0
-    target_max_len = 0
+    # source_max_len = 0
+    # target_max_len = 0
 
-    for item in raw_dataset:
-        source_len = source_tokenizer.encode(item["translation"][config["source_language"]])
-        target_len = target_tokenizer.encode(item["translation"][config["target_language"]])
+    # for item in raw_dataset:
+    #     source_len = len(source_tokenizer.encode(item["translation"][config["source_language"]]).ids)
+    #     target_len = len(target_tokenizer.encode(item["translation"][config["target_language"]]).ids)
 
-        source_max_len = max(source_max_len, source_len)
-        target_max_len = max(target_max_len, target_len)
+    #     source_max_len = max(source_max_len, source_len)
+    #     target_max_len = max(target_max_len, target_len)
 
     train_dataset = TranslateDataset(
         raw_train_dataset,
@@ -57,7 +57,7 @@ def get_dataset(config):
         target_tokenizer,
         config["source_language"],
         config["target_language"],
-        source_max_len
+        config["max_len"]
     )
 
     valid_dataset = TranslateDataset(
@@ -66,7 +66,7 @@ def get_dataset(config):
         target_tokenizer,
         config["source_language"],
         config["target_language"],
-        target_max_len
+        config["max_len"]
     )
 
     train_dataloader = DataLoader(train_dataset, config["batch_size"], shuffle=True)

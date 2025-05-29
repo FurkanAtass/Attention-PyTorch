@@ -22,13 +22,13 @@ class TranslateDataset(Dataset):
 
         self.max_len = max_len
         
-        self.source_sos_token = torch.Tensor(source_tokenizer.token_to_id("[SOS]"), dtype=torch.int64)
-        self.source_eos_token = torch.Tensor(source_tokenizer.token_to_id("[EOS]"), dtype=torch.int64)
-        self.source_pad_token = torch.Tensor(source_tokenizer.token_to_id("[PAD]"), dtype=torch.int64)
+        self.source_sos_token = torch.tensor(source_tokenizer.token_to_id("[SOS]"), dtype=torch.int64)
+        self.source_eos_token = torch.tensor(source_tokenizer.token_to_id("[EOS]"), dtype=torch.int64)
+        self.source_pad_token = torch.tensor(source_tokenizer.token_to_id("[PAD]"), dtype=torch.int64)
 
-        self.target_sos_token = torch.Tensor(target_tokenizer.token_to_id("[SOS]"), dtype=torch.int64)
-        self.target_eos_token = torch.Tensor(target_tokenizer.token_to_id("[EOS]"), dtype=torch.int64)
-        self.target_pad_token = torch.Tensor(target_tokenizer.token_to_id("[PAD]"), dtype=torch.int64)
+        self.target_sos_token = torch.tensor(target_tokenizer.token_to_id("[SOS]"), dtype=torch.int64)
+        self.target_eos_token = torch.tensor(target_tokenizer.token_to_id("[EOS]"), dtype=torch.int64)
+        self.target_pad_token = torch.tensor(target_tokenizer.token_to_id("[PAD]"), dtype=torch.int64)
 
     def __len__(self):
         return len(self.dataset)
@@ -49,22 +49,22 @@ class TranslateDataset(Dataset):
             raise ValueError("Sentence longer than max_len")
         
         encoder_input = torch.cat([
-            self.source_eos_token,
-            encoder_input_tokens,
-            self.source_eos_token,
-            torch.Tensor([self.source_pad_token] * encoder_num_padding_tokens, dtype=torch.int64)
+            self.source_eos_token.unsqueeze(0),
+            torch.tensor(encoder_input_tokens, dtype=torch.int64),
+            self.source_eos_token.unsqueeze(0),
+            torch.tensor([self.source_pad_token] * encoder_num_padding_tokens, dtype=torch.int64)
         ])
 
         decoder_input = torch.cat([
-            self.target_sos_token,
-            decoder_input_tokens,
-            torch.Tensor([self.target_pad_token] * decoder_num_padding_tokens, dtype=torch.int64)
+            self.target_sos_token.unsqueeze(0),
+            torch.tensor(decoder_input_tokens, dtype=torch.int64),
+            torch.tensor([self.target_pad_token] * decoder_num_padding_tokens, dtype=torch.int64)
         ])
 
         decoder_output = torch.cat([
-            decoder_input_tokens,
-            self.target_eos_token,
-            torch.Tensor([self.target_pad_token] * decoder_num_padding_tokens, dtype=torch.int64)
+            torch.tensor(decoder_input_tokens, dtype=torch.int64),
+            self.target_eos_token.unsqueeze(0),
+            torch.tensor([self.target_pad_token] * decoder_num_padding_tokens, dtype=torch.int64)
         ])
 
         assert encoder_input.size(0) == self.max_len

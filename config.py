@@ -14,14 +14,14 @@ def get_config():
     
     "batch_size": 32,
     "learning_rate": 10e-4,
-    
+    "num_epochs": 20,
+    "max_len": 500
     # Model parameters to modify
     # "model_parameters": {
     #     "d_model": 512,
     #     "num_heads": 8,
     #     "dff": 2048,
     #     "num_layers": 6,
-    #     "max_len": 1000,
     #     "dropout": 0.1
     # }
 }
