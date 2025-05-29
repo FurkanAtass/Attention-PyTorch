@@ -9,7 +9,7 @@ from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
 
 from pathlib import Path
-from dataset import TranslateDataset
+from data_utils.dataset import TranslateDataset
 
 def get_all_sentences(dataset, language):
     for data in dataset:
