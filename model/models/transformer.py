@@ -66,7 +66,7 @@ class Transformer(nn.Module):
         dec_output = self.decoder(dec_input, enc_output, dec_padding_mask, enc_padding_mask)
 
         final_output = self.final_layer(dec_output)
-        final_output = self.dropout(final_output)
+        # final_output = self.dropout(final_output)
 
         return final_output
 

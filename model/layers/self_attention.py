@@ -13,7 +13,7 @@ class SelfAttention(nn.Module):
         attention = torch.matmul(q, k.transpose(-2, -1)) / (d ** 0.5)
 
         if mask is not None:
-            attention = attention.masked_fill(mask == 0, float('-inf')) # values 0 in mask are set to -inf
+            attention = attention.masked_fill(mask == 0, -1e9) # values 0 in mask are set to -inf
 
         attention = self.softmax(attention) # softmax to get attention weights q * k^T
 

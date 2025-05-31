@@ -5,14 +5,14 @@ def get_config():
     "source_language": "en",
     "target_language": "de",
 
-    "train_split": 90,
+    "train_split": 0.9,
     
     "tokenizer_path": {
         "source": "tokenizers/source_tokenizer",
         "target": "tokenizers/target_tokenizer"
     },
     
-    "batch_size": 32,
+    "batch_size": 8,
     "learning_rate": 10e-4,
     "num_epochs": 20,
     "max_len": 500
