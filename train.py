@@ -6,8 +6,37 @@ from data_utils.tokenizer import get_dataset
 from config import get_config
 
 import pendulum
+import json
+from pathlib import Path
 device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 PRINT_EVERY_N_BATCHES = 100
+
+def get_results(config):
+    results_file = config.get("results_path", "result.json")
+    model_save_dir = config.get("model_save_dir", "checkpoints")
+
+    results_path = Path(f"{model_save_dir}/{results_file}")
+    if not Path(results_path).exists():
+        return []
+    with open(results_path, "r") as f:
+        results = json.load(f)
+        print(f"Loaded results from {results_path}")
+        print(f"Results: {results}")
+    return results
+
+def save_results(config, results):
+    results_file = config.get("results_path", "results.json")
+    model_save_dir = config.get("model_save_dir", "checkpoints")
+
+    results_path = Path(f"{model_save_dir}/{results_file}")
+    with open(results_path, "w") as f:
+        json.dump(results, f)
+
+def accuracy(predictions, labels):
+    _, prediction_classes = torch.max(predictions, dim=2)
+    correct = (prediction_classes == labels).float()
+    acc = correct.sum() / correct.numel()
+    return acc.item()
 
 def prepare_model_and_data(config):
     (train_dataloader, 
@@ -41,20 +70,22 @@ config = get_config()
  optimizer,
  loss_fn) = prepare_model_and_data(config)
 
+results = get_results(config)
+
+if results is not None and len(results) > 0:
+    model_save_dir = config.get("model_save_dir", "checkpoints")
+    model_path = Path(f"{model_save_dir}/model_epoch_{len(results)}.pth")
+    if not model_path.exists():
+        print(f"Model file {model_path} does not exist. Starting from scratch.")
+        results = []
+    else:
+        print(f"Loading model from {model_path}")
+        model.load_state_dict(torch.load(model_path))
+    print(f"Loaded model from epoch {len(results)}")
+
 model.to(device)
-torch.save(model.state_dict(), "model.pth")
-print(f"Train dataloader length: {len(train_dataloader)}")
-print(f"Validation dataloader length: {len(valid_dataloader)}")
 
-
-def accuracy(predictions, labels):
-    _, prediction_classes = torch.max(predictions, dim=2)
-    correct = (prediction_classes == labels).float()
-    acc = correct.sum() / correct.numel()
-    return acc.item()
-  
-# save loss acc and model
-for epoch in range(config["num_epochs"]):
+for epoch in range(len(results), config["num_epochs"]):
     avg_train_loss = 0.
     avg_validation_loss = 0.
     avg_acc = 0.
@@ -118,3 +149,16 @@ for epoch in range(config["num_epochs"]):
           f"Validation Loss: {avg_validation_loss:.4f} | "
           f"Validation Accuracy: {avg_acc:.4f} | "
           f"Time: {(epoch_end_time - epoch_start_time).in_words()} ")
+    
+    epoch_results = {
+        "epoch": epoch + 1,
+        "train_loss": avg_train_loss,
+        "validation_loss": avg_validation_loss,
+        "validation_accuracy": avg_acc,
+        "time": (epoch_end_time - epoch_start_time).in_words()
+    }
+    results.append(epoch_results)
+    save_results(config, results)
+    torch.save(model.state_dict(), f"{config["model_save_dir"]}/model_epoch_{epoch + 1}.pth")
+
+

@@ -11,7 +11,8 @@ def get_config():
         "source": "tokenizers/source_tokenizer",
         "target": "tokenizers/target_tokenizer"
     },
-    
+    "results_path": "results.json",
+    "model_save_dir": "checkpoints",
     "batch_size": 8,
     "learning_rate": 10e-4,
     "num_epochs": 20,
