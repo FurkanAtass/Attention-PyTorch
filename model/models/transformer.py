@@ -11,13 +11,13 @@ class Transformer(nn.Module):
             decoder_padding_idx,
             encoder_vocab_size, 
             decoder_vocab_size,
+            device,
             d_model=512, 
             num_heads=8, 
             dff=2048, 
             num_layers=6, 
             max_len=10000, 
             dropout=0.1,
-            device="cpu"
         ):
         super(Transformer, self).__init__()
 
@@ -27,7 +27,7 @@ class Transformer(nn.Module):
         self.decoder_vocab_size = decoder_vocab_size
 
         self.device = device
-
+        
         self.encoder = Encoder(
             vocab_size=encoder_vocab_size,
             d_model=d_model,
@@ -36,7 +36,6 @@ class Transformer(nn.Module):
             num_layers=num_layers,
             max_len=max_len,
             dropout=dropout,
-            device=device
         )
 
         self.decoder = Decoder(
@@ -47,7 +46,6 @@ class Transformer(nn.Module):
             num_layers=num_layers,
             max_len=max_len,
             dropout=dropout,
-            device=device
         )
 
         self.final_layer = nn.Linear(d_model, decoder_vocab_size)

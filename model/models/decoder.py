@@ -5,11 +5,11 @@ from model.embedding.input_embedding import InputEmbedding
 from model.embedding.positional_encoding import PositionalEncoding
 
 class Decoder(nn.Module):
-    def __init__(self, vocab_size, d_model, num_heads, dff, num_layers, max_len, dropout=0.1, device="cpu"):
+    def __init__(self, vocab_size, d_model, num_heads, dff, num_layers, max_len, dropout=0.1):
         super(Decoder, self).__init__()
 
         self.input_embedding = InputEmbedding(vocab_size, d_model)
-        self.positional_encoding = PositionalEncoding(d_model, max_len, dropout, device)
+        self.positional_encoding = PositionalEncoding(d_model, max_len, dropout)
 
         self.decoder_blocks = nn.ModuleList([
             DecoderBlock(d_model, num_heads, dff, dropout) for _ in range(num_layers)

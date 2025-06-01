@@ -49,7 +49,7 @@ class TranslateDataset(Dataset):
             raise ValueError("Sentence longer than max_len")
         
         encoder_input = torch.cat([
-            self.source_eos_token.unsqueeze(0),
+            self.source_sos_token.unsqueeze(0),
             torch.tensor(encoder_input_tokens, dtype=torch.int64),
             self.source_eos_token.unsqueeze(0),
             torch.tensor([self.source_pad_token] * encoder_num_padding_tokens, dtype=torch.int64)

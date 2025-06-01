@@ -3,13 +3,12 @@ from torch import nn
 import math
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d, max_len, dropout=0.1, device="cpu"):
+    def __init__(self, d, max_len, dropout=0.1):
         super(PositionalEncoding, self).__init__()
 
         self.dropout = nn.Dropout(p=dropout)
         self.d = d
         self.max_len = max_len
-        self.device = device
         
         self.encoding = torch.zeros(max_len, d) # shape: (max_len, d)
 
@@ -30,7 +29,8 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         # x: (batch_size, T, d)
         # Use the encoding for the first T positions
-        x = x + self.encoding[:, :x.size(1), :].requires_grad_(False).to(self.device) # shape: (batch_size, T, d)
+        self.positional_encoding
+        x = x + self.positional_encoding[:, :x.size(1), :].requires_grad_(False) # shape: (batch_size, T, d)
         x = self.dropout(x)
 
         return x
