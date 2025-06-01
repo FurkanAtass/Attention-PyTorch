@@ -14,7 +14,7 @@ def get_config():
     "results_path": "results.json",
     "model_save_dir": "checkpoints",
     "batch_size": 8,
-    "learning_rate": 10e-4,
+    "learning_rate": 3e-3,
     "num_epochs": 50,
     "max_len": 500
     # Model parameters to modify

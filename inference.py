@@ -78,7 +78,7 @@ model = Transformer(
         device=device
 )
 
-# model.load_state_dict(torch.load(f"{config["model_save_dir"]}/model_epoch_10.pth"))
+model.load_state_dict(torch.load(f"{config["model_save_dir"]}/model_epoch_8.pth"))
 input_sentence = "The quick brown fox jumps over the lazy dog."
 
 output = inference(

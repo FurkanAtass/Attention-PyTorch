@@ -219,5 +219,7 @@ for epoch in range(len(results), config["num_epochs"]):
     }
     results.append(epoch_results)
     save_results(config, results)
+    torch.save(model.state_dict(), f"{config["model_save_dir"]}/model_epoch_{epoch + 1}.pth")
+
 
 
