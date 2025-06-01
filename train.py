@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from model.models.transformer import Transformer
 from data_utils.tokenizer import get_dataset
+from torchmetrics.text import BLEUScore
 
 from config import get_config
 
@@ -32,11 +33,69 @@ def save_results(config, results):
     with open(results_path, "w") as f:
         json.dump(results, f)
 
-def accuracy(predictions, labels):
-    _, prediction_classes = torch.max(predictions, dim=2)
-    correct = (prediction_classes == labels).float()
-    acc = correct.sum() / correct.numel()
-    return acc.item()
+def calculate_bleu_score(predictions, labels, target_tokenizer):
+    """
+    Calculate BLEU score between predictions and labels
+    
+    Args:
+        predictions: Model predictions (batch_size, seq_len, vocab_size)
+        labels: Target labels (batch_size, seq_len)
+        target_tokenizer: Tokenizer to decode tokens back to text
+    
+    Returns:
+        BLEU score
+    """
+    # Get predicted token ids
+    _, prediction_ids = torch.max(predictions, dim=2)
+    
+    # Convert to lists for easier processing
+    pred_ids = prediction_ids.cpu().numpy()
+    label_ids = labels.cpu().numpy()
+    
+    # Convert token ids back to text
+    pred_texts = []
+    label_texts = []
+    
+    pad_token_id = target_tokenizer.token_to_id("[PAD]")
+    eos_token_id = target_tokenizer.token_to_id("[EOS]")
+    
+    for i in range(len(pred_ids)):
+        # Remove padding and EOS tokens, convert to text
+        pred_tokens = []
+        label_tokens = []
+        
+        for token_id in pred_ids[i]:
+            if token_id != pad_token_id and token_id != eos_token_id:
+                pred_tokens.append(token_id)
+            else:
+                break
+                
+        for token_id in label_ids[i]:
+            if token_id != pad_token_id and token_id != eos_token_id:
+                label_tokens.append(token_id)
+            else:
+                break
+        
+        # Decode tokens to text
+        if len(pred_tokens) > 0:
+            pred_text = target_tokenizer.decode(pred_tokens)
+        else:
+            pred_text = ""
+            
+        if len(label_tokens) > 0:
+            label_text = target_tokenizer.decode(label_tokens)
+        else:
+            label_text = ""
+            
+        pred_texts.append(pred_text)
+        label_texts.append([label_text])  # BLEU expects list of references
+    
+    # Calculate BLEU score
+    bleu = BLEUScore()
+    if len(pred_texts) > 0 and len(label_texts) > 0:
+        return bleu(pred_texts, label_texts).item()
+    else:
+        return 0.0
 
 def prepare_model_and_data(config):
     (train_dataloader, 
@@ -60,7 +119,7 @@ def prepare_model_and_data(config):
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=config["learning_rate"], eps=1e-9)
     loss_fn = nn.CrossEntropyLoss(ignore_index=encoder_padding_idx, label_smoothing=0.1)
-    return train_dataloader, valid_dataloader, model, optimizer, loss_fn
+    return train_dataloader, valid_dataloader, model, optimizer, loss_fn, target_tokenizer
 
 config = get_config()
 
@@ -68,7 +127,8 @@ config = get_config()
  valid_dataloader, 
  model,
  optimizer,
- loss_fn) = prepare_model_and_data(config)
+ loss_fn,
+ target_tokenizer) = prepare_model_and_data(config)
 
 results = get_results(config)
 
@@ -88,7 +148,7 @@ model.to(device)
 for epoch in range(len(results), config["num_epochs"]):
     avg_train_loss = 0.
     avg_validation_loss = 0.
-    avg_acc = 0.
+    avg_bleu = 0.
     epoch_start_time = pendulum.now()
 
     model.train()
@@ -133,32 +193,31 @@ for epoch in range(len(results), config["num_epochs"]):
 
             avg_validation_loss += loss.item()
 
-            batch_acc = accuracy(prediction, label)
-            avg_acc += batch_acc
+            batch_bleu = calculate_bleu_score(prediction, label, target_tokenizer)
+            avg_bleu += batch_bleu
 
             if (i + 1) % PRINT_EVERY_N_BATCHES == 0:
                 print(f"Validation Batch {i + 1}/{len(valid_dataloader)} | "
                       f"Loss: {loss.item():.4f} | "
-                      f"Accuracy: {batch_acc:.4f}")
+                      f"BLEU Score: {batch_bleu:.4f}")
 
     avg_validation_loss /= len(valid_dataloader)
-    avg_acc /= len(valid_dataloader)
+    avg_bleu /= len(valid_dataloader)
     epoch_end_time = pendulum.now()
     print(f"Epoch {epoch + 1}/{config['num_epochs']} | "
           f"Train Loss: {avg_train_loss:.4f} | "
           f"Validation Loss: {avg_validation_loss:.4f} | "
-          f"Validation Accuracy: {avg_acc:.4f} | "
+          f"Validation BLEU Score: {avg_bleu:.4f} | "
           f"Time: {(epoch_end_time - epoch_start_time).in_words()} ")
     
     epoch_results = {
         "epoch": epoch + 1,
         "train_loss": avg_train_loss,
         "validation_loss": avg_validation_loss,
-        "validation_accuracy": avg_acc,
+        "validation_bleu_score": avg_bleu,
         "time": (epoch_end_time - epoch_start_time).in_words()
     }
     results.append(epoch_results)
     save_results(config, results)
-    torch.save(model.state_dict(), f"{config["model_save_dir"]}/model_epoch_{epoch + 1}.pth")
 
 
