@@ -12,6 +12,14 @@ from pathlib import Path
 device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 PRINT_EVERY_N_BATCHES = 100
 
+def get_lr_scheduler(optimizer, d_model=512, warmup_steps=4000):
+    """Learning rate scheduler with warmup as described in the original paper"""
+    def lr_lambda(step):
+        if step == 0:
+            step = 1
+        return (d_model ** -0.5) * min(step ** -0.5, step * (warmup_steps ** -1.5))
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
 def get_results(config):
     results_file = config.get("results_path", "result.json")
     model_save_dir = config.get("model_save_dir", "checkpoints")
@@ -31,7 +39,7 @@ def save_results(config, results):
 
     results_path = Path(f"{model_save_dir}/{results_file}")
     with open(results_path, "w") as f:
-        json.dump(results, f)
+        json.dump(results, f, indent=2)
 
 def calculate_bleu_score(predictions, labels, target_tokenizer):
     """
@@ -117,9 +125,10 @@ def prepare_model_and_data(config):
         device=device
     )
 
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=config["learning_rate"], eps=1e-9)
-    loss_fn = nn.CrossEntropyLoss(ignore_index=encoder_padding_idx, label_smoothing=0.1)
-    return train_dataloader, valid_dataloader, model, optimizer, loss_fn, target_tokenizer
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=1.0, eps=1e-9, betas=(0.9, 0.98))
+    scheduler = get_lr_scheduler(optimizer, d_model=512, warmup_steps=4000)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=decoder_padding_idx, label_smoothing=0.1)
+    return train_dataloader, valid_dataloader, model, optimizer, scheduler, loss_fn, target_tokenizer
 
 config = get_config()
 
@@ -127,6 +136,7 @@ config = get_config()
  valid_dataloader, 
  model,
  optimizer,
+ scheduler,
  loss_fn,
  target_tokenizer) = prepare_model_and_data(config)
 
@@ -135,12 +145,37 @@ results = get_results(config)
 if results is not None and len(results) > 0:
     model_save_dir = config.get("model_save_dir", "checkpoints")
     model_path = Path(f"{model_save_dir}/model_epoch_{len(results)}.pth")
+    scheduler_path = Path(f"{model_save_dir}/scheduler_epoch_{len(results)}.pth")
+    
     if not model_path.exists():
         print(f"Model file {model_path} does not exist. Starting from scratch.")
         results = []
     else:
         print(f"Loading model from {model_path}")
         model.load_state_dict(torch.load(model_path))
+        
+        # Load scheduler state if it exists
+        if scheduler_path.exists():
+            print(f"Loading scheduler from {scheduler_path}")
+            scheduler.load_state_dict(torch.load(scheduler_path))
+        else:
+            print("No scheduler state found, calculating correct scheduler step...")
+            # Calculate total steps completed so far
+            steps_per_epoch = len(train_dataloader)
+            total_steps_completed = len(results) * steps_per_epoch
+            
+            print(f"Advancing scheduler by {total_steps_completed} steps to resume at correct LR")
+            
+            # Manually advance scheduler to correct position
+            for step in range(total_steps_completed):
+                scheduler.step()
+                if (step + 1) % 1000 == 0:  # Progress indicator
+                    current_lr = scheduler.get_last_lr()[0]
+                    print(f"  Step {step + 1}/{total_steps_completed}, LR: {current_lr:.6f}")
+            
+            final_lr = scheduler.get_last_lr()[0]
+            print(f"Scheduler resumed at step {total_steps_completed}, LR: {final_lr:.6f}")
+            
     print(f"Loaded model from epoch {len(results)}")
 
 model.to(device)
@@ -162,22 +197,26 @@ for epoch in range(len(results), config["num_epochs"]):
 
         optimizer.zero_grad()
 
-        # loss = loss_fn(prediction.view(-1, model.decoder_vocab_size), label.view(-1))
         loss = loss_fn(prediction.permute(0, 2, 1), label)
 
         loss.backward()
 
+        # Gradient clipping to prevent exploding gradients
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
         optimizer.step()
+        scheduler.step()
 
         avg_train_loss += loss.item()
 
         if (i + 1) % PRINT_EVERY_N_BATCHES == 0:
+            current_lr = scheduler.get_last_lr()[0]
             print(f"Epoch {epoch + 1}/{config['num_epochs']} | "
                   f"Batch {i + 1}/{len(train_dataloader)} | "
                   f"Train Loss: {loss.item():.4f} | "
-                  f"Avg Train Loss: {avg_train_loss / (i + 1):.4f}")
-        # if i == 100:
-        #     break 
+                  f"Avg Train Loss: {avg_train_loss / (i + 1):.4f} | "
+                  f"LR: {current_lr:.6f}")
+            
     avg_train_loss /= len(train_dataloader)
 
     model.eval()
@@ -204,6 +243,8 @@ for epoch in range(len(results), config["num_epochs"]):
     avg_validation_loss /= len(valid_dataloader)
     avg_bleu /= len(valid_dataloader)
     epoch_end_time = pendulum.now()
+
+    current_lr = scheduler.get_last_lr()[0]
     print(f"Epoch {epoch + 1}/{config['num_epochs']} | "
           f"Train Loss: {avg_train_loss:.4f} | "
           f"Validation Loss: {avg_validation_loss:.4f} | "
@@ -215,11 +256,13 @@ for epoch in range(len(results), config["num_epochs"]):
         "train_loss": avg_train_loss,
         "validation_loss": avg_validation_loss,
         "validation_bleu_score": avg_bleu,
+        "learning_rate": current_lr,
         "time": (epoch_end_time - epoch_start_time).in_words()
     }
     results.append(epoch_results)
     save_results(config, results)
     torch.save(model.state_dict(), f"{config["model_save_dir"]}/model_epoch_{epoch + 1}.pth")
+    torch.save(scheduler.state_dict(), f"{config["model_save_dir"]}/scheduler_epoch_{epoch + 1}.pth")
 
 
 

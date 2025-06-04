@@ -55,13 +55,13 @@ class Transformer(nn.Module):
         # enc_input: (batch_size, src_len)
         # dec_input: (batch_size, tgt_len)
 
-        # Padding mask
+        # Padding mask for encoder
         enc_padding_mask = self.enc_mask(enc_input)
-        # Look-ahead mask for decoder
-        dec_padding_mask = self.dec_mask(dec_input)
+        # Combined mask for decoder (padding + look-ahead)
+        dec_combined_mask = self.dec_mask(dec_input)
 
         enc_output = self.encoder(enc_input, enc_padding_mask)
-        dec_output = self.decoder(dec_input, enc_output, dec_padding_mask, enc_padding_mask)
+        dec_output = self.decoder(dec_input, enc_output, dec_combined_mask, enc_padding_mask)
 
         final_output = self.final_layer(dec_output)
         # final_output = self.dropout(final_output)
@@ -69,16 +69,27 @@ class Transformer(nn.Module):
         return final_output
 
     def enc_mask(self, enc_input):
+        # Create padding mask for encoder
+        # Shape: (batch_size, 1, 1, src_len)
         enc_padding_mask = (enc_input != self.encoder_padding_idx).unsqueeze(1).unsqueeze(2)
-        # (N, 1, 1, src_len)
         return enc_padding_mask
     
-    def dec_mask(self, trg):
-        trg_pad_mask = (trg != self.decoder_padding_idx).unsqueeze(1).unsqueeze(3)
-        trg_len = trg.shape[1]
-        trg_sub_mask = torch.tril(torch.ones(trg_len, trg_len)).type(torch.ByteTensor).to(self.device)
-        trg_mask = trg_pad_mask & trg_sub_mask
-        return trg_mask
+    def dec_mask(self, dec_input):
+        batch_size, seq_len = dec_input.shape
+        
+        # Create padding mask
+        # Shape: (batch_size, 1, 1, seq_len)
+        padding_mask = (dec_input != self.decoder_padding_idx).unsqueeze(1).unsqueeze(2)
+        
+        # Create look-ahead mask (lower triangular matrix)
+        # Shape: (1, 1, seq_len, seq_len)
+        look_ahead_mask = torch.tril(torch.ones(seq_len, seq_len, device=self.device, dtype=torch.bool)).unsqueeze(0).unsqueeze(0)
+        
+        # Combine both masks
+        # Shape: (batch_size, 1, seq_len, seq_len)
+        combined_mask = padding_mask & look_ahead_mask
+        
+        return combined_mask
     
 
 

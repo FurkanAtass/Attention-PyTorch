@@ -10,6 +10,6 @@ class InputEmbedding(nn.Module):
         self.embedding = nn.Embedding(vocab_size, d)
 
     def forward(self, x):
-        x = self.embedding(x) / math.sqrt(self.d) # shape: (batch_size, T, d)
+        x = self.embedding(x) * math.sqrt(self.d) # shape: (batch_size, T, d)
 
         return x
