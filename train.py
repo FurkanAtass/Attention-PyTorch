@@ -129,8 +129,20 @@ def prepare_model_and_data(config):
         device=device
     )
 
+    # Calculate adaptive warmup steps based on dataset and training configuration
+    steps_per_epoch = len(train_dataloader)
+    total_training_steps = steps_per_epoch * config["num_epochs"]
+    
+    # Use warmup for first 10% of training
+    adaptive_warmup_steps = int(0.1 * total_training_steps)
+    
+    print(f"Training configuration:")
+    print(f"  Steps per epoch: {steps_per_epoch}")
+    print(f"  Total training steps: {total_training_steps}")
+    print(f"  Adaptive warmup steps: {adaptive_warmup_steps}")
+
     optimizer = torch.optim.Adam(params=model.parameters(), lr=1.0, eps=1e-9, betas=(0.9, 0.98))
-    scheduler = get_lr_scheduler(optimizer, d_model=512, warmup_steps=4000)
+    scheduler = get_lr_scheduler(optimizer, d_model=512, warmup_steps=adaptive_warmup_steps)
     loss_fn = nn.CrossEntropyLoss(ignore_index=decoder_padding_idx, label_smoothing=0.1)
     return train_dataloader, valid_dataloader, model, optimizer, scheduler, loss_fn, target_tokenizer
 
