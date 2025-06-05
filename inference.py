@@ -78,8 +78,8 @@ model = Transformer(
         device=device
 )
 
-model.load_state_dict(torch.load(f"{config["model_save_dir"]}/model_epoch_8.pth"))
-input_sentence = "The quick brown fox jumps over the lazy dog."
+model.load_state_dict(torch.load(f"{config["model_save_dir"]}/model_epoch_7.pth"))
+input_sentence = "who are you?"
 
 output = inference(
     input_sentence,model, source_tokenizer, target_tokenizer, config["max_len"], "cuda"

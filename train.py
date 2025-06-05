@@ -38,6 +38,10 @@ def save_results(config, results):
     model_save_dir = config.get("model_save_dir", "checkpoints")
 
     results_path = Path(f"{model_save_dir}/{results_file}")
+    
+    # Create the directory if it doesn't exist
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
 
@@ -261,6 +265,11 @@ for epoch in range(len(results), config["num_epochs"]):
     }
     results.append(epoch_results)
     save_results(config, results)
+    
+    # Create checkpoint directory if it doesn't exist
+    checkpoint_dir = Path(config["model_save_dir"])
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    
     torch.save(model.state_dict(), f"{config["model_save_dir"]}/model_epoch_{epoch + 1}.pth")
     torch.save(scheduler.state_dict(), f"{config["model_save_dir"]}/scheduler_epoch_{epoch + 1}.pth")
 
