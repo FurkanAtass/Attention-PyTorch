@@ -120,29 +120,45 @@ def prepare_model_and_data(config):
     encoder_vocab_size = source_tokenizer.get_vocab_size()
     decoder_vocab_size = target_tokenizer.get_vocab_size()
 
+    # Get model parameters from config if available
+    model_params = config.get("model_parameters", {})
+
     model = Transformer(
         encoder_padding_idx,
         decoder_padding_idx,
         encoder_vocab_size,
         decoder_vocab_size,
         max_len=config["max_len"],
-        device=device
+        device=device,
+        **model_params
     )
 
     # Calculate adaptive warmup steps based on dataset and training configuration
     steps_per_epoch = len(train_dataloader)
     total_training_steps = steps_per_epoch * config["num_epochs"]
     
-    # Use warmup for first 10% of training
-    adaptive_warmup_steps = int(0.1 * total_training_steps)
+    # Use specific warmup_steps from config, or fall back to 10% of training
+    warmup_steps = config.get("warmup_steps", int(0.1 * total_training_steps))
     
     print(f"Training configuration:")
     print(f"  Steps per epoch: {steps_per_epoch}")
     print(f"  Total training steps: {total_training_steps}")
-    print(f"  Adaptive warmup steps: {adaptive_warmup_steps}")
+    print(f"  Warmup steps: {warmup_steps} ({warmup_steps/steps_per_epoch:.1f} epochs)")
+    print(f"  Weight decay: {config.get('weight_decay', 0.0)}")
+    print(f"  Model dropout: {model_params.get('dropout', 0.1)}")
 
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=1.0, eps=1e-9, betas=(0.9, 0.98))
-    scheduler = get_lr_scheduler(optimizer, d_model=512, warmup_steps=adaptive_warmup_steps)
+    # Add weight decay to optimizer
+    weight_decay = config.get("weight_decay", 0.0)
+    base_lr = config["learning_rate"]  # Use the LR from config
+    
+    optimizer = torch.optim.Adam(
+        params=model.parameters(), 
+        lr=base_lr,  # Use actual learning rate from config
+        eps=1e-9, 
+        betas=(0.9, 0.98),
+        weight_decay=weight_decay
+    )
+    scheduler = get_lr_scheduler(optimizer, d_model=model_params.get("d_model", 512), warmup_steps=warmup_steps)
     loss_fn = nn.CrossEntropyLoss(ignore_index=decoder_padding_idx, label_smoothing=0.1)
     return train_dataloader, valid_dataloader, model, optimizer, scheduler, loss_fn, target_tokenizer
 

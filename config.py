@@ -13,16 +13,19 @@ def get_config():
     },
     "results_path": "results.json",
     "model_save_dir": "checkpoints",
-    "batch_size": 8,
+    "batch_size": 16,
     "learning_rate": 1e-4,
-    "num_epochs": 100,
-    "max_len": 500
-    # Model parameters to modify
-    # "model_parameters": {
-    #     "d_model": 512,
-    #     "num_heads": 8,
-    #     "dff": 2048,
-    #     "num_layers": 6,
-    #     "dropout": 0.1
-    # }
+    "num_epochs": 50,
+    "max_len": 500,
+    
+    "weight_decay": 1e-4,
+    "warmup_steps": 4000,
+    
+    "model_parameters": {
+        "d_model": 512,
+        "num_heads": 8,
+        "dff": 2048,
+        "num_layers": 6,
+        "dropout": 0.2
+    }
 }
