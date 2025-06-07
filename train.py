@@ -149,11 +149,10 @@ def prepare_model_and_data(config):
 
     # Add weight decay to optimizer
     weight_decay = config.get("weight_decay", 0.0)
-    base_lr = config["learning_rate"]  # Use the LR from config
     
     optimizer = torch.optim.Adam(
         params=model.parameters(), 
-        lr=base_lr,  # Use actual learning rate from config
+        lr=1.0,  # Use actual learning rate from config
         eps=1e-9, 
         betas=(0.9, 0.98),
         weight_decay=weight_decay
@@ -208,7 +207,7 @@ if results is not None and len(results) > 0:
             final_lr = scheduler.get_last_lr()[0]
             print(f"Scheduler resumed at step {total_steps_completed}, LR: {final_lr:.6f}")
             
-    print(f"Loaded model from epoch {len(results)}")
+        print(f"Loaded model from epoch {len(results)}")
 
 model.to(device)
 
@@ -276,7 +275,7 @@ for epoch in range(len(results), config["num_epochs"]):
     avg_bleu /= len(valid_dataloader)
     epoch_end_time = pendulum.now()
 
-    current_lr = scheduler.get_last_lr()[0]
+    current_lr = optimizer.param_groups[0]['lr']
     print(f"Epoch {epoch + 1}/{config['num_epochs']} | "
           f"Train Loss: {avg_train_loss:.4f} | "
           f"Validation Loss: {avg_validation_loss:.4f} | "
