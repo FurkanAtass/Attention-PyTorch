@@ -4,26 +4,7 @@ A PyTorch implementation of the Transformer architecture for neural machine tran
 
 ## Overview
 
-This project implements a complete Transformer model from scratch using PyTorch, designed for sequence-to-sequence tasks like machine translation. The implementation includes:
-
-- **Full Transformer Architecture**: Encoder-decoder model with multi-head self-attention
-- **Positional Encoding**: Sinusoidal position embeddings
-- **Layer Normalization**: Pre-norm architecture
-- **Feed-Forward Networks**: Position-wise feed-forward layers
-- **Custom Training Loop**: With learning rate scheduling and warmup
-- **BLEU Score Evaluation**: Automatic evaluation metrics
-- **Tokenization**: Custom tokenizer integration
-
-## Features
-
-- ✅ **Complete Transformer Implementation** - Full encoder-decoder architecture
-- ✅ **Configurable Hyperparameters** - Easy configuration management
-- ✅ **Multi-head Attention** - Scalable attention mechanism
-- ✅ **Learning Rate Scheduling** - Warmup and decay as per original paper
-- ✅ **BLEU Score Metrics** - Automatic translation quality evaluation
-- ✅ **Resume Training** - Checkpoint saving and loading
-- ✅ **GPU Support** - CUDA acceleration
-- ✅ **Inference Mode** - Ready-to-use translation inference
+This project implements a complete Transformer model from scratch using PyTorch, designed for sequence-to-sequence tasks like machine translation.
 
 ## Project Structure
 
@@ -125,46 +106,6 @@ Enter a sentence in English: Hello, how are you?
 Output: Hallo, wie geht es dir?
 ```
 
-### Programmatic Inference
-
-You can also use the inference function programmatically:
-
-```python
-from inference import inference, model, source_tokenizer, target_tokenizer
-from config import get_config
-
-config = get_config()
-result = inference(
-    "Your text here", 
-    model, 
-    source_tokenizer, 
-    target_tokenizer, 
-    config["max_len"], 
-    "cuda"
-)
-```
-
-## Model Architecture
-
-The implementation follows the original Transformer architecture:
-
-### Encoder
-- **Multi-Head Self-Attention**: Parallel attention heads
-- **Position-wise Feed-Forward**: Two linear transformations
-- **Residual Connections**: Skip connections around sub-layers
-- **Layer Normalization**: Applied before each sub-layer
-
-### Decoder
-- **Masked Multi-Head Self-Attention**: Prevents future token access
-- **Encoder-Decoder Attention**: Attends to encoder outputs
-- **Position-wise Feed-Forward**: Same as encoder
-- **Residual Connections & Layer Norm**: Same as encoder
-
-### Key Components
-- **Positional Encoding**: Sinusoidal embeddings for sequence position
-- **Multi-Head Attention**: Scaled dot-product attention mechanism
-- **Feed-Forward Networks**: Position-wise fully connected layers
-
 ## Training Details
 
 ### Learning Rate Scheduling
@@ -182,7 +123,7 @@ lr = d_model^(-0.5) * min(step^(-0.5), step * warmup_steps^(-1.5))
 ### Evaluation
 - **BLEU Score**: Calculated on validation set
 - **Checkpoint Saving**: Model and scheduler states saved each epoch
-- **Resume Training**: Automatic checkpoint loading
+- **Resume Training**: Automatic checkpoint and scheduler loading
 
 ## Performance
 
