@@ -134,5 +134,93 @@
     "validation_bleu_score": 0.0816142558270591,
     "learning_rate": 0.00014086440882016434,
     "time": "44 minutes 59 seconds"
+  },
+  {
+    "epoch": 18,
+    "train_loss": 4.739996653723181,
+    "validation_loss": 4.840266837836793,
+    "validation_bleu_score": 0.08535172036553947,
+    "learning_rate": 0.00013689559858770007,
+    "time": "47 minutes 1 second"
+  },
+  {
+    "epoch": 19,
+    "train_loss": 4.716869862215507,
+    "validation_loss": 4.82445909777043,
+    "validation_bleu_score": 0.0862831688726101,
+    "learning_rate": 0.00013324439129665868,
+    "time": "44 minutes 59 seconds"
+  },
+  {
+    "epoch": 20,
+    "train_loss": 4.684363060582281,
+    "validation_loss": 4.8092729904636835,
+    "validation_bleu_score": 0.08837595880783586,
+    "learning_rate": 0.00012987056795677856,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 21,
+    "train_loss": 4.664339127730005,
+    "validation_loss": 4.807248994800615,
+    "validation_bleu_score": 0.08832909988950916,
+    "learning_rate": 0.00012674069674288764,
+    "time": "44 minutes 57 seconds"
+  },
+  {
+    "epoch": 22,
+    "train_loss": 4.652476358578407,
+    "validation_loss": 4.79384678269025,
+    "validation_bleu_score": 0.09120777406822311,
+    "learning_rate": 0.00012382672799086575,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 23,
+    "train_loss": 4.62958230185797,
+    "validation_loss": 4.787545639535655,
+    "validation_bleu_score": 0.09419797598789244,
+    "learning_rate": 0.00012110492906859643,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 24,
+    "train_loss": 4.612004706402517,
+    "validation_loss": 4.777669248003397,
+    "validation_bleu_score": 0.0944185324956125,
+    "learning_rate": 0.00011855506604322538,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 25,
+    "train_loss": 4.592242519101949,
+    "validation_loss": 4.777780356984701,
+    "validation_bleu_score": 0.09227719358371003,
+    "learning_rate": 0.00011615976729114513,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 26,
+    "train_loss": 4.57847377689803,
+    "validation_loss": 4.767814969424135,
+    "validation_bleu_score": 0.09419801282430333,
+    "learning_rate": 0.00011390402309845113,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 27,
+    "train_loss": 4.562604016137659,
+    "validation_loss": 4.7584634915642114,
+    "validation_bleu_score": 0.09661372663360668,
+    "learning_rate": 0.00011177478819091154,
+    "time": "44 minutes 58 seconds"
+  },
+  {
+    "epoch": 28,
+    "train_loss": 4.554147686118289,
+    "validation_loss": 4.7592853718662855,
+    "validation_bleu_score": 0.09624860935948604,
+    "learning_rate": 0.00010976066307268035,
+    "time": "44 minutes 59 seconds"
   }
 ]
