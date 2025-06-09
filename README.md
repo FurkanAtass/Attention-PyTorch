@@ -106,6 +106,19 @@ Enter a sentence in English: Hello, how are you?
 Output: Hallo, wie geht es dir?
 ```
 
+### Using Pre-trained Model
+
+For quick testing without training from scratch, you can download a pre-trained checkpoint:
+
+1. **Download the pre-trained model:**
+   - Download from: [Pre-trained Checkpoint](https://drive.google.com/file/d/1kNtrfIdGP1Sde8-SAKR3-zc-WhMDqM2D/view?usp=sharing)
+   - Save the downloaded file as `model_epoch_28.pth` in the `checkpoints/` directory
+
+2. **Run inference with the pre-trained model:**
+```bash
+python inference.py
+```
+
 ## Training Details
 
 ### Learning Rate Scheduling
